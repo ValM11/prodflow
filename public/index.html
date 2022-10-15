@@ -1,0 +1,95 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="./frontend.js">
+    </script>
+</head>
+
+<body>
+    <h2>Production lines follow-up</h2>
+
+    <div>Please enter new site if needed</div>
+    <div id="newSite">
+        <form action="/new-site" target="_blank" method="POST">
+            <label for="sitename">Site name:</label>
+            <input type="text" id="sitename" name="sitename" required><br>
+            <label for="sitestreet">Street:</label>
+            <input type="text" id="sitestreet" name="sitestreet"><br>
+            <label for="sitecity">City:</label>
+            <input type="text" id="sitecity" name="sitecity">
+            <input type="submit" value="Submit">
+        </form>
+    </div><br>
+
+    <div>
+        <label for="site-choice">Choose your site:</label>
+        <select id="site-choice" onchange="update()">
+        </select>
+    </div>
+
+    <div>
+        <h4>Site information</h4>
+        <div id="siteInfo"></div>
+    </div>
+    <div>
+        <h4>Site production lines</h4>
+        <table id="siteLines"></table>
+    </div><br>
+
+    <div>
+        <div>Update line information for this site, if needed</div>
+        <label for="line-choice">Choose your line:</label>
+        <select id="line-choice">
+        </select>
+        <div>
+            <div>Please enter the updated number of units per mn for this line :</div>
+            <div id="nbunit"></div>
+        </div>
+    </div><br>
+    <div>
+        <div>Please enter new production line for this site if needed</div>
+        <div id="newLine"></div>
+    </div>
+
+</body>
+<script>
+    fetch('/site-names')
+        .then(response => response.json())
+        .then((data) => {
+            let allSites = formatAllSites(data);
+            displayHTML(allSites, "site-choice");
+        });
+
+    function update() {
+        let select = document.getElementById('site-choice');
+        let option = select.options[select.selectedIndex];
+        const selectedSite = option.value;
+        let url = "/site-info/" + selectedSite;
+        fetch(url)
+            .then(response => response.json())
+            .then((data) => {
+                let info = Site(data);
+                displayHTML(info, "siteInfo");
+                let table = Lines(data);
+                displayHTML(table, "siteLines");
+                let lines = formatLinesFromSite(data);
+                displayHTML(lines, "line-choice");
+
+
+                let selectline = document.getElementById('line-choice');
+                selectline.addEventListener('change', () => {
+                    let optionline = selectline.options[selectline.selectedIndex];
+                    const selectedLine = optionline.value;
+                    const urlupdate = "/production-line/" + selectedSite + "/" + selectedLine + "/update";
+                    formatLineToUpdate(urlupdate);
+                });
+            });
+
+        const urlpost = "/new-production-line/" + selectedSite;
+        formatLineToAdd(urlpost);
+
+    };
+</script>
+
+</html>
